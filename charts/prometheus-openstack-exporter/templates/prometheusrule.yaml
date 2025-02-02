@@ -80,14 +80,14 @@ spec:
           be cleaned up or removed in order to provide a consistent customer experience.
 
     - alert: CinderVolumeInDeleting
-       expr: 'openstack_cinder_volume_status == 7'
-       for: 10m
-       labels:
-          severity: warning
-       annotations:
-          summary: "[`{{`{{$labels.id}}`}}`] Volume in deleting state"
-          description: >
-            The volume `{{`{{$labels.id}}`}}` is stuck in deleting status for more than 10 minutes"
+      expr: 'openstack_cinder_volume_status == 7'
+      for: 10m
+      labels:
+         severity: warning
+      annotations:
+         summary: "[`{{`{{$labels.id}}`}}`] Volume in deleting state"
+         description: >
+           The volume `{{`{{$labels.id}}`}}` is stuck in deleting status for more than 10 minutes"
 
     - alert: CinderVolumeInCreating
       expr: 'openstack_cinder_volume_status == 0'
@@ -197,22 +197,22 @@ spec:
           as quickly as possible.
 
     - alert: NovaInstanceInError
-      for: 15m
+      for: 10m
       expr: |
         openstack_nova_server_status{status="ERROR"}
       labels:
-        severity: warning
+        severity: critical
       annotations:
         summary: "[`{{`{{$labels.id}}`}}`] Instance in ERROR state"
         description: >
-          The instance `{{`{{$labels.id}}`}}` has been in ERROR state for over 15 minutes.  It must
+          The instance `{{`{{$labels.id}}`}}` has been in ERROR state for over 10 minutes.  It must
           be cleaned up or removed in order to provide a consistent customer experience.
 
     - alert: NovaInstanceInBuilding
       for: 15m
       expr: 'openstack_nova_server_status == 1'
       labels:
-        severity: warning
+        severity: critical
       annotations:
         summary: "[`{{`{{$labels.id}}`}}`] Instance in BUILD state"
         description: >
@@ -222,7 +222,7 @@ spec:
       for: 15m
       expr: 'openstack_nova_server_status == 10'
       labels:
-        severity: warning
+        severity: critical
       annotations:
         summary: "[`{{`{{$labels.id}}`}}`] Instance in RESIZE state"
         description: >
@@ -232,7 +232,7 @@ spec:
       for: 15m
       expr: 'openstack_nova_server_status == 13'
       labels:
-        severity: warning
+        severity: critical
       annotations:
         summary: "[`{{`{{$labels.id}}`}}`] Instance in UNKNOWN state"
         description: >
@@ -242,21 +242,21 @@ spec:
       for: 15m
       expr: 'openstack_nova_server_status == 14'
       labels:
-        severity: warning
+        severity: critical
       annotations:
         summary: "[`{{`{{$labels.id}}`}}`] Instance in VERIFY_RESIZE state"
         description: >
           The instance `{{`{{$labels.id}}`}}` has been in VERIFY_RESIZE state for over 15 minutes.
 
     - alert: NovaInstanceInMIGRATING
-      for: 15m
+      for: 30m
       expr: 'openstack_nova_server_status == 15'
       labels:
-        severity: warning
+        severity: critical
       annotations:
         summary: "[`{{`{{$labels.id}}`}}`] Instance in MIGRATING state"
         description: >
-          The instance `{{`{{$labels.id}}`}}` has been in MIGRATING state for over 15 minutes.
+          The instance `{{`{{$labels.id}}`}}` has been in MIGRATING state for over 30 minutes.
 
     - alert: NovaFailureRisk
       for: 6h
@@ -272,7 +272,7 @@ spec:
           failures occur.  Please ensure that adequate amount of infrastructure is assigned to this
           deployment to prevent this.
 
-    - alert: NovaCapacity
+    - alert: NovaCapacityNearFull
       for: 6h
       expr: |
         sum (
@@ -287,8 +287,58 @@ spec:
       labels:
         severity: warning
       annotations:
+        summary: "[nova] near full Capacity risk"
+        description: >
+          The cloud capacity is currently at `{{`{{$value}}`}}` which means there is a risk of running
+          out of capacity due to the timeline required to add new nodes.  Please ensure that adequate
+          amount of infrastructure is assigned to this deployment to prevent this.
+
+    - alert: NovaCapacityFull
+      for: 6h
+      expr: |
+        sum (
+            openstack_nova_memory_used_bytes
+          + on(hostname) group_left(adminState)
+            (0 * openstack_nova_agent_state{exported_service="nova-compute",adminState="enabled"})
+        ) / sum (
+            openstack_nova_memory_available_bytes
+          + on(hostname) group_left(adminState)
+            (0 * openstack_nova_agent_state{exported_service="nova-compute",adminState="enabled"})
+        ) * 100 > 85
+      labels:
+        severity: critical
+      annotations:
         summary: "[nova] Capacity risk"
         description: >
           The cloud capacity is currently at `{{`{{$value}}`}}` which means there is a risk of running
           out of capacity due to the timeline required to add new nodes.  Please ensure that adequate
           amount of infrastructure is assigned to this deployment to prevent this.
+
+  - name: octavia
+    rules:
+    - alert: LoadbalancerDown
+      for: 5m
+      expr: 'openstack_loadbalancer_up != 1'
+      labels:
+        severity: critical
+      annotations:
+        summary: "OpenStack loadbalancer service down"
+        description: "OpenStack loadbalancer service down"
+
+    - alert: LoadbalancerNotActive
+      for: 5m
+      expr: openstack_loadbalancer_loadbalancer_status{provisioning_status!="ACTIVE"}
+      labels:
+        severity: critical
+      annotations:
+        summary: "OpenStack loadbalancer `{{`{{$labels.name}}`}}` provisioning status is not ACTIVE"
+        description: "OpenStack loadbalancer `{{`{{$labels.name}}`}}` provisioning status is not ACTIVE"
+
+    - alert: LoadbalancerPoolNotActive
+      for: 5m
+      expr: openstack_loadbalancer_pool_status{provisioning_status!="ACTIVE"}
+      labels:
+        severity: critical
+      annotations:
+        summary: "OpenStack loadbalancer pool `{{`{{$labels.name}}`}}` provisioning status is not ACTIVE"
+        description: "OpenStack loadbalancer pool `{{`{{$labels.name}}`}}` provisioning status is not ACTIVE"
