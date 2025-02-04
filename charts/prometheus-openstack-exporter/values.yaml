@@ -76,7 +76,7 @@ promethuesRules:
     rules:
     - alert: KeystoneDown
       for: 5m
-      expr: 'openstack_identity_up != 1'
+      expr: openstack_identity_up != 1
       labels:
         severity: critical
       annotations:
@@ -88,7 +88,7 @@ promethuesRules:
     rules:
     - alert: GlanceDown
       for: 5m
-      expr: 'openstack_glance_up != 1'
+      expr: openstack_glance_up != 1
       labels:
         severity: critical
       annotations:
@@ -100,7 +100,7 @@ promethuesRules:
     rules:
     - alert: CinderDown
       for: 5m
-      expr: 'openstack_cinder_up != 1'
+      expr: openstack_cinder_up != 1
       labels:
         severity: critical
       annotations:
@@ -109,68 +109,65 @@ promethuesRules:
 
     - alert: CinderAgentDown
       for: 5m
-      expr: |
-        openstack_cinder_agent_state{adminState="enabled"} != 1
+      expr: openstack_cinder_agent_state{adminState="enabled"} != 1
       labels:
         severity: critical
       annotations:
-        summary: "[`{{`{{$labels.hostname}}`}}`] `{{`{{$labels.exported_service}}`}}` down"
+        summary: "`{{`{{$labels.hostname}}`}}` `{{`{{$labels.exported_service}}`}}` down"
         description: >
           The service `{{`{{$labels.exported_service}}`}}` running on `{{`{{$labels.hostname}}`}}`
-          is being reported as down for 5 minutes.  This can affect volume operations so it must
+          is being reported as down for 5 minutes. This can affect volume operations so it must
           be resolved as quickly as possible.
 
     - alert: CinderAgentDisabled
       for: 1h
-      expr: |
-        openstack_cinder_agent_state{adminState!="enabled"}
+      expr: openstack_cinder_agent_state{adminState!="enabled"}
       labels:
         severity: warning
       annotations:
-        summary: "[`{{`{{$labels.hostname}}`}}`] `{{`{{$labels.exported_service}}`}}` disabled"
+        summary: "`{{`{{$labels.hostname}}`}}` `{{`{{$labels.exported_service}}`}}` disabled"
         description: >
           The service `{{`{{$labels.exported_service}}`}}` running on `{{`{{$labels.hostname}}`}}`
-          has been disabled for 60 minutes.  This can affect volume operations so it must be resolved
+          has been disabled for 60 minutes. This can affect volume operations so it must be resolved
           as quickly as possible.
 
     - alert: CinderVolumeInError
-      for: 24h
-      expr: |
-        openstack_cinder_volume_status{status=~"error.*"}
+      for: 15m
+      expr: openstack_cinder_volume_status{status=~"error.*"}
       labels:
-        severity: warning
+        severity: critical
       annotations:
-        summary: "[`{{`{{$labels.id}}`}}`] Volume in ERROR state"
+        summary: "`{{`{{$labels.name}}`}}` Volume in ERROR state"
         description: >
-          The volume `{{`{{$labels.id}}`}}` has been in ERROR state for over 24 hours.  It must
-          be cleaned up or removed in order to provide a consistent customer experience.
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+          It must be cleaned up or removed in order to provide a consistent customer experience.
 
     - alert: CinderVolumeInDeleting
-      expr: 'openstack_cinder_volume_status == 7'
-      for: 10m
-      labels:
-         severity: warning
-      annotations:
-         summary: "[`{{`{{$labels.id}}`}}`] Volume in deleting state"
-         description: >
-           The volume `{{`{{$labels.id}}`}}` is stuck in deleting status for more than 10 minutes"
-
-    - alert: CinderVolumeInCreating
-      expr: 'openstack_cinder_volume_status == 0'
-      for: 10m
+      expr: openstack_cinder_volume_status == 7
+      for: 15m
       labels:
         severity: warning
       annotations:
-        summary: "[`{{`{{$labels.id}}`}}`] Volume in creating state"
+        summary: "`{{`{{$labels.name}}`}}` Volume in DELETING state"
         description: >
-          The volume `{{`{{$labels.id}}`}}` is stuck in deleting status for more than 10 minutes"
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
+    - alert: CinderVolumeInCreating
+      expr: openstack_cinder_volume_status == 0
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in CREATING state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
   neutron:
     enabled: true
     rules:
     - alert: NeutronDown
       for: 5m
-      expr: 'openstack_neutron_up != 1'
+      expr: openstack_neutron_up != 1
       labels:
         severity: critical
       annotations:
@@ -179,12 +176,11 @@ promethuesRules:
 
     - alert: NeutronAgentDown
       for: 5m
-      expr: |
-        openstack_neutron_agent_state{adminState="up"} != 1
+      expr: openstack_neutron_agent_state{adminState="up"} != 1
       labels:
         severity: critical
       annotations:
-        summary: "[`{{`{{$labels.hostname}}`}}`] `{{`{{$labels.exported_service}}`}}` down"
+        summary: "`{{`{{$labels.hostname}}`}}` `{{`{{$labels.exported_service}}`}}` down"
         description: >
           The service `{{`{{$labels.exported_service}}`}}` running on `{{`{{$labels.hostname}}`}}`
           is being reported as down for 5 minutes. This can affect network operations so it must
@@ -192,24 +188,22 @@ promethuesRules:
 
     - alert: NeutronAgentDisabled
       for: 1h
-      expr: |
-        openstack_neutron_agent_state{adminState!="up"}
+      expr: openstack_neutron_agent_state{adminState!="up"}
       labels:
         severity: warning
       annotations:
-        summary: "[`{{`{{$labels.hostname}}`}}`] `{{`{{$labels.exported_service}}`}}` disabled"
+        summary: "`{{`{{$labels.hostname}}`}}` `{{`{{$labels.exported_service}}`}}` disabled"
         description: >
           The service `{{`{{$labels.exported_service}}`}}` running on `{{`{{$labels.hostname}}`}}`
-          has been disabled for 60 minutes.  This can affect network operations so it must be resolved
+          has been disabled for 60 minutes. This can affect network operations so it must be resolved
           as quickly as possible.
 
     - alert: NeutronBindingFailedPorts
-      expr: |
-        openstack_neutron_port{binding_vif_type="binding_failed"} != 0
+      expr: openstack_neutron_port{binding_vif_type="binding_failed"} != 0
       labels:
         severity: warning
       annotations:
-        summary: "[`{{`{{$labels.device_owner}}`}}`] `{{`{{$labels.mac_address}}`}}` binding failed"
+        summary: "`{{`{{$labels.device_owner}}`}}` `{{`{{$labels.mac_address}}`}}` binding failed"
         description: >
           The NIC `{{`{{$labels.mac_address}}`}}` of `{{`{{$labels.device_owner}}`}}`
           has binding failed port now.
@@ -220,10 +214,10 @@ promethuesRules:
       labels:
         severity: warning
       annotations:
-        summary: "[`{{`{{$labels.network_name}}`}}`] `{{`{{$labels.subnet_name}}`}}` running out of IPs"
+        summary: "`{{`{{$labels.network_name}}`}}` `{{`{{$labels.subnet_name}}`}}` running out of IPs"
         description: >
           The subnet `{{`{{$labels.subnet_name}}`}}` within `{{`{{$labels.network_name}}`}}`
-          is currently at `{{`{{$value}}`}}`% utilization.  If the IP addresses run out, it will
+          is currently at `{{`{{$value}}`}}`% utilization. If the IP addresses run out, it will
           impact the provisioning of new ports.
 
   nova:
@@ -231,7 +225,7 @@ promethuesRules:
     rules:
     - alert: NovaDown
       for: 5m
-      expr: 'openstack_nova_up != 1'
+      expr: openstack_nova_up != 1
       labels:
         severity: critical
       annotations:
@@ -240,91 +234,88 @@ promethuesRules:
 
     - alert: NovaAgentDown
       for: 5m
-      expr: |
-        openstack_nova_agent_state{adminState="enabled"} != 1
+      expr: openstack_nova_agent_state{adminState="enabled"} != 1
       labels:
         severity: critical
       annotations:
-        summary: "[`{{`{{$labels.hostname}}`}}`] `{{`{{$labels.exported_service}}`}}` down"
+        summary: "`{{`{{$labels.hostname}}`}}` `{{`{{$labels.exported_service}}`}}` down"
         description: >
           The service `{{`{{$labels.exported_service}}`}}` running on `{{`{{$labels.hostname}}`}}`
-          is being reported as down.  This can affect compute operations so it must be resolved
+          is being reported as down. This can affect compute operations so it must be resolved
           as quickly as possible.
 
     - alert: NovaAgentDisabled
       for: 1h
-      expr: |
-        openstack_nova_agent_state{adminState!="enabled"}
+      expr: openstack_nova_agent_state{adminState!="enabled"}
       labels:
         severity: warning
       annotations:
-        summary: "[`{{`{{$labels.hostname}}`}}`] `{{`{{$labels.exported_service}}`}}` disabled"
+        summary: "`{{`{{$labels.hostname}}`}}` `{{`{{$labels.exported_service}}`}}` disabled"
         description: >
           The service `{{`{{$labels.exported_service}}`}}` running on `{{`{{$labels.hostname}}`}}`
-          has been disabled for 60 minutes.  This can affect compute operations so it must be resolved
+          has been disabled for 60 minutes. This can affect compute operations so it must be resolved
           as quickly as possible.
 
     - alert: NovaInstanceInError
       for: 10m
-      expr: |
-        openstack_nova_server_status{status="ERROR"}
+      expr: openstack_nova_server_status{status="ERROR"}
       labels:
         severity: critical
       annotations:
-        summary: "[`{{`{{$labels.id}}`}}`] Instance in ERROR state"
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
         description: >
-          The instance `{{`{{$labels.id}}`}}` has been in ERROR state for over 10 minutes.  It must
-          be cleaned up or removed in order to provide a consistent customer experience.
+          The instance `{{`{{$labels.id}}`}}` on host `{{`{{$labels.hypervisor_hostname}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 10 minutes.
+          It must be cleaned up or removed in order to provide a consistent customer experience.
 
     - alert: NovaInstanceInBuilding
       for: 15m
-      expr: 'openstack_nova_server_status == 1'
+      expr: openstack_nova_server_status == 1
       labels:
         severity: critical
       annotations:
-        summary: "[`{{`{{$labels.id}}`}}`] Instance in BUILD state"
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
         description: >
-          The instance `{{`{{$labels.id}}`}}` has been in BUILD state for over 15 minutes.
+          The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
     - alert: NovaInstanceInRESIZE
       for: 15m
-      expr: 'openstack_nova_server_status == 10'
+      expr: openstack_nova_server_status == 10
       labels:
         severity: critical
       annotations:
-        summary: "[`{{`{{$labels.id}}`}}`] Instance in RESIZE state"
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
         description: >
-          The instance `{{`{{$labels.id}}`}}` has been in RESIZE state for over 15 minutes.
+          The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
     - alert: NovaInstanceInUNKNOWN
       for: 15m
-      expr: 'openstack_nova_server_status == 13'
+      expr: openstack_nova_server_status == 13
       labels:
         severity: critical
       annotations:
-        summary: "[`{{`{{$labels.id}}`}}`] Instance in UNKNOWN state"
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
         description: >
-          The instance `{{`{{$labels.id}}`}}` has been in UNKNOWN state for over 15 minutes.
+          The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
     - alert: NovaInstanceInVERIFY_RESIZE
       for: 15m
-      expr: 'openstack_nova_server_status == 14'
+      expr: openstack_nova_server_status == 14
       labels:
         severity: critical
       annotations:
-        summary: "[`{{`{{$labels.id}}`}}`] Instance in VERIFY_RESIZE state"
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
         description: >
-          The instance `{{`{{$labels.id}}`}}` has been in VERIFY_RESIZE state for over 15 minutes.
+          The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
     - alert: NovaInstanceInMIGRATING
       for: 30m
-      expr: 'openstack_nova_server_status == 15'
+      expr: openstack_nova_server_status == 15
       labels:
         severity: critical
       annotations:
-        summary: "[`{{`{{$labels.id}}`}}`] Instance in MIGRATING state"
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
         description: >
-          The instance `{{`{{$labels.id}}`}}` has been in MIGRATING state for over 30 minutes.
+          The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 30 minutes.
 
     - alert: NovaFailureRisk
       for: 6h
@@ -337,7 +328,7 @@ promethuesRules:
         description: >
           The cloud capacity will be at `{{`{{$value}}`}}` in the event of the failure of a single
           hypervisor which puts the cloud at risk of not being able to recover should any hypervisor
-          failures occur.  Please ensure that adequate amount of infrastructure is assigned to this
+          failures occur. Please ensure that adequate amount of infrastructure is assigned to this
           deployment to prevent this.
 
     - alert: NovaCapacityNearFull
@@ -379,7 +370,7 @@ promethuesRules:
         summary: "[nova] Capacity risk"
         description: >
           The cloud capacity is currently at `{{`{{$value}}`}}` which means there is a risk of running
-          out of capacity due to the timeline required to add new nodes.  Please ensure that adequate
+          out of capacity due to the timeline required to add new nodes. Please ensure that adequate
           amount of infrastructure is assigned to this deployment to prevent this.
 
   octavia:
@@ -387,7 +378,7 @@ promethuesRules:
     rules:
     - alert: LoadbalancerDown
       for: 5m
-      expr: 'openstack_loadbalancer_up != 1'
+      expr: openstack_loadbalancer_up != 1
       labels:
         severity: critical
       annotations:
@@ -401,7 +392,7 @@ promethuesRules:
         severity: critical
       annotations:
         summary: "OpenStack loadbalancer `{{`{{$labels.name}}`}}` provisioning status is not ACTIVE"
-        description: "OpenStack loadbalancer `{{`{{$labels.name}}`}}` provisioning status is not ACTIVE"
+        description: "OpenStack loadbalancer `{{`{{$labels.id}}`}}` provisioning status is `{{`{{$labels.provisioning_status}}`}}`"
 
     - alert: LoadbalancerPoolNotActive
       for: 5m
@@ -410,4 +401,25 @@ promethuesRules:
         severity: critical
       annotations:
         summary: "OpenStack loadbalancer pool `{{`{{$labels.name}}`}}` provisioning status is not ACTIVE"
-        description: "OpenStack loadbalancer pool `{{`{{$labels.name}}`}}` provisioning status is not ACTIVE"
+        description: "OpenStack loadbalancer pool `{{`{{$labels.id}}`}}` provisioning status is `{{`{{$labels.provisioning_status}}`}}`"
+
+  manila:
+    enabled: true
+    rules:
+    - alert: ManilaDown
+      for: 5m
+      expr: openstack_sharev2_up != 1
+      labels:
+        severity: critical
+      annotations:
+        summary: "OpenStack shared file system (Manila) service down"
+        description: "OpenStack shared file system (Manila) service down"
+
+    - alert: ManilaStatusNotActive
+      for: 5m
+      expr: openstack_sharev2_share_status{status!="available"}
+      labels:
+        severity: critical
+      annotations:
+        summary: "OpenStack Share `{{`{{$labels.name}}`}}` status is not ACTIVE"
+        description: "OpenStack Share `{{`{{$labels.id}}`}}` status is `{{`{{$labels.status}}`}}`"
