@@ -142,6 +142,26 @@ promethuesRules:
           The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
           It must be cleaned up or removed in order to provide a consistent customer experience.
 
+    - alert: CinderVolumeInAttaching
+      expr: openstack_cinder_volume_status == 3
+      for: 10m
+      labels:
+        severity: critical
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in ATTACHING state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 10 minutes.
+
+    - alert: CinderVolumeInDetaching
+      expr: openstack_cinder_volume_status == 4
+      for: 10m
+      labels:
+        severity: critical
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in DETACHING state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 10 minutes.
+
     - alert: CinderVolumeInDeleting
       expr: openstack_cinder_volume_status == 7
       for: 15m
@@ -159,6 +179,36 @@ promethuesRules:
         severity: warning
       annotations:
         summary: "`{{`{{$labels.name}}`}}` Volume in CREATING state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
+    - alert: CinderVolumeInBackingUp
+      expr: openstack_cinder_volume_status == 12
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in BackingUp state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
+    - alert: CinderVolumeInRestoringBackup
+      expr: openstack_cinder_volume_status == 12
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in RESTORING-BACKUP state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
+    - alert: CinderVolumeInExtending
+      expr: openstack_cinder_volume_status == 19
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in EXTENDING state"
         description: >
           The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
