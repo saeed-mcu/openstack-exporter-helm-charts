@@ -131,6 +131,7 @@ promethuesRules:
           has been disabled for 60 minutes. This can affect volume operations so it must be resolved
           as quickly as possible.
 
+    # value = (9 | 10 | 13 | 14 | 15)
     - alert: CinderVolumeInError
       for: 15m
       expr: openstack_cinder_volume_status{status=~"error.*"}
@@ -141,6 +142,26 @@ promethuesRules:
         description: >
           The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
           It must be cleaned up or removed in order to provide a consistent customer experience.
+
+    - alert: CinderVolumeInCreating
+      expr: openstack_cinder_volume_status == 0
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in CREATING state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
+    - alert: CinderVolumeInReserved
+      expr: openstack_cinder_volume_status == 2
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in RESERVED state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
     - alert: CinderVolumeInAttaching
       expr: openstack_cinder_volume_status == 3
@@ -162,6 +183,16 @@ promethuesRules:
         description: >
           The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 10 minutes.
 
+    - alert: CinderVolumeInMaintenance
+      expr: openstack_cinder_volume_status == 6
+      for: 20m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in MAINTENANCE state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
     - alert: CinderVolumeInDeleting
       expr: openstack_cinder_volume_status == 7
       for: 15m
@@ -172,18 +203,18 @@ promethuesRules:
         description: >
           The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
-    - alert: CinderVolumeInCreating
-      expr: openstack_cinder_volume_status == 0
+    - alert: CinderVolumeInAwaitingTransfer
+      expr: openstack_cinder_volume_status == 8
       for: 15m
       labels:
         severity: warning
       annotations:
-        summary: "`{{`{{$labels.name}}`}}` Volume in CREATING state"
+        summary: "`{{`{{$labels.name}}`}}` Volume in AwaitingTransfer state"
         description: >
           The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
     - alert: CinderVolumeInBackingUp
-      expr: openstack_cinder_volume_status == 12
+      expr: openstack_cinder_volume_status == 11
       for: 15m
       labels:
         severity: warning
@@ -199,6 +230,36 @@ promethuesRules:
         severity: warning
       annotations:
         summary: "`{{`{{$labels.name}}`}}` Volume in RESTORING-BACKUP state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
+    - alert: CinderVolumeInDownloading
+      expr: openstack_cinder_volume_status == 16
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in DOWNLOADING state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
+    - alert: CinderVolumeInUploading
+      expr: openstack_cinder_volume_status == 17
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in UPLOADING state"
+        description: >
+          The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
+    - alert: CinderVolumeInRetyping
+      expr: openstack_cinder_volume_status == 18
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Volume in RETYPING state"
         description: >
           The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
