@@ -95,6 +95,15 @@ promethuesRules:
         summary: "OpenStack Glance service down"
         description: "OpenStack Glance service down"
 
+    - alert: GlanceImageStatusNotActive
+      for: 5m
+      expr: openstack_glance_image_created_at{status!="active"}
+      labels:
+        severity: warning
+      annotations:
+        summary: "OpenStack Image `{{`{{$labels.name}}`}}` status is not ACTIVE"
+        description: "OpenStack Image `{{`{{$labels.id}}`}}` status is `{{`{{$labels.status}}`}}`"
+
   cinder:
     enabled: true
     rules:
@@ -273,6 +282,102 @@ promethuesRules:
         description: >
           The volume `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
+    - alert: CinderVolumeQuotaAlmostFull
+      expr: (openstack_cinder_limits_volume_max_gb - openstack_cinder_limits_volume_used_gb) < 200
+      for: 30m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Cinder volume quota almost full for project `{{ $labels.tenant }}`"
+        description: >
+          Project '{{ $labels.tenant_id }}' is nearing its Cinder volume quota limit.
+          Only {{ $value }} GB of volume space remains out of the allocated quota.
+          Consider cleaning up unused volumes or requesting a quota increase.
+
+    - alert: CinderVolumeQuotaFull
+      expr: (openstack_cinder_limits_volume_max_gb - openstack_cinder_limits_volume_used_gb) < 50
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Cinder volume quota full for project `{{ $labels.tenant }}`"
+        description: >
+          Project '{{ $labels.tenant_id }}' is nearing its Cinder volume quota limit.
+          Only {{ $value }} GB of volume space remains out of the allocated quota.
+          Consider cleaning up unused volumes or requesting a quota increase.
+
+    - alert: CinderBackupQuotaAlmostFull
+      expr: (openstack_cinder_limits_backup_max_gb - openstack_cinder_limits_backup_used_gb) < 200
+      for: 30m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Cinder backup quota almost full for project `{{ $labels.tenant }}`"
+        description: >
+          Project '{{ $labels.tenant_id }}' is nearing its Cinder backup quota limit.
+          Only {{ $value }} GB of backup space remains out of the allocated quota.
+          Consider cleaning up unused backup or requesting a quota increase.
+
+    - alert: CinderBackupQuotaFull
+      expr: (openstack_cinder_limits_backup_max_gb - openstack_cinder_limits_backup_used_gb) < 50
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Cinder backup quota full for project `{{ $labels.tenant }}`"
+        description: >
+          Project '{{ $labels.tenant_id }}' is nearing its Cinder volume quota limit.
+          Only {{ $value }} GB of backup space remains out of the allocated quota.
+          Consider cleaning up unused backup or requesting a quota increase.
+
+  placement:
+    enabled: true
+    rules:
+    - alert: PlacementDown
+      for: 5m
+      expr: openstack_placement_up != 1
+      labels:
+        severity: critical
+      annotations:
+        summary: "OpenStack Placement service down"
+        description: "OpenStack Placement service down"
+
+    - alert: PlacementLowMemoryResource
+      for: 5m
+      expr: |
+        ( openstack_placement_resource_allocation_ratio{resourcetype="MEMORY_MB"} * on (hostname)
+          openstack_placement_resource_total{resourcetype="MEMORY_MB"}
+        ) -
+        ( openstack_placement_resource_usage{resourcetype="MEMORY_MB"} + on (hostname)
+          openstack_placement_resource_reserved{resourcetype="MEMORY_MB"}
+        ) < 32768
+      labels:
+        severity: warning
+      annotations:
+        summary: "Low memory on host `{{ $labels.hostname }}`"
+        description: >
+          The available memory (after accounting for usage and reserved memory) on host {{ $labels.hostname }}
+          is below 32GB. This could lead to scheduling issues or performance degradation for new instances.
+          Consider investigating memory usage or increasing available resources.
+
+    - alert: PlacementLowMemoryResource
+      for: 5m
+      expr: |
+        ( openstack_placement_resource_allocation_ratio{resourcetype="MEMORY_MB"} * on (hostname)
+          openstack_placement_resource_total{resourcetype="MEMORY_MB"}
+        ) -
+        ( openstack_placement_resource_usage{resourcetype="MEMORY_MB"} + on (hostname)
+          openstack_placement_resource_reserved{resourcetype="MEMORY_MB"}
+        ) < 12288
+      labels:
+        severity: critical
+      annotations:
+        summary: "Low memory on host `{{ $labels.hostname }}`"
+        description: >
+          The available memory (after accounting for usage and reserved memory) on host {{ $labels.hostname }}
+          is below 12GB. This could lead to scheduling issues or performance degradation for new instances.
+          Consider investigating memory usage or increasing available resources.
+
   neutron:
     enabled: true
     rules:
@@ -331,6 +436,15 @@ promethuesRules:
           is currently at `{{`{{$value}}`}}`% utilization. If the IP addresses run out, it will
           impact the provisioning of new ports.
 
+    - alert: NeutronrouterNotActive
+      for: 5m
+      expr: openstack_neutron_router{status!="ACTIVE"}
+      labels:
+        severity: critical
+      annotations:
+        summary: "OpenStack neutron router `{{`{{$labels.name}}`}}` status is not ACTIVE"
+        description: "OpenStack neutron router `{{`{{$labels.id}}`}}` status is `{{`{{$labels.status}}`}}`"
+
   nova:
     enabled: true
     rules:
@@ -388,6 +502,46 @@ promethuesRules:
         description: >
           The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
+    - alert: NovaInstanceInSpawning
+      for: 10m
+      expr: openstack_nova_server_status == 2
+      labels:
+        severity: critical
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
+        description: >
+          The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
+
+    - alert: NovaInstanceInHardReboot
+      for: 30m
+      expr: openstack_nova_server_status == 5
+      labels:
+        severity: critical
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
+        description: >
+          The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 30 minutes.
+
+    - alert: NovaInstanceInReboot
+      for: 30m
+      expr: openstack_nova_server_status == 7
+      labels:
+        severity: critical
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
+        description: >
+          The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 30 minutes.
+
+    - alert: NovaInstanceInRebuild
+      for: 30m
+      expr: openstack_nova_server_status == 8
+      labels:
+        severity: critical
+      annotations:
+        summary: "`{{`{{$labels.name}}`}}` Instance in `{{`{{$labels.status}}`}}` state"
+        description: >
+          The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 30 minutes.
+
     - alert: NovaInstanceInRESIZE
       for: 15m
       expr: openstack_nova_server_status == 10
@@ -409,7 +563,7 @@ promethuesRules:
           The instance `{{`{{$labels.id}}`}}` has been in `{{`{{$labels.status}}`}}` state for over 15 minutes.
 
     - alert: NovaInstanceInVERIFY_RESIZE
-      for: 15m
+      for: 10m
       expr: openstack_nova_server_status == 14
       labels:
         severity: critical
@@ -483,6 +637,39 @@ promethuesRules:
           The cloud capacity is currently at `{{`{{$value}}`}}` which means there is a risk of running
           out of capacity due to the timeline required to add new nodes. Please ensure that adequate
           amount of infrastructure is assigned to this deployment to prevent this.
+
+    - alert: NovaInstanceQuotaAlmostFull
+      expr: (openstack_nova_limits_instances_max - openstack_nova_limits_instances_used) < 2
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Nova instance quota almost full for project `{{ $labels.tenant }}`"
+        description: >
+          Project '{{ $labels.tenant_id }}' is nearing its Nova instance quota limit.
+          Only {{ $value }} instance remains to reach quota.
+
+    - alert: NovaMemoryQuotaAlmostFull
+      expr: (openstack_nova_limits_memory_max - openstack_nova_limits_memory_used) < 12288
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Nova memory quota almost full for project `{{ $labels.tenant }}`"
+        description: >
+          Project '{{ $labels.tenant_id }}' is nearing its Nova memory quota limit.
+          Only {{ $value }} MB memory remains to reach quota.
+
+    - alert: NovaCpuQuotaAlmostFull
+      expr: (openstack_nova_limits_vcpus_max - openstack_nova_limits_vcpus_used) < 10
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Nova vcpu quota almost full for project `{{ $labels.tenant }}`"
+        description: >
+          Project '{{ $labels.tenant_id }}' is nearing its Nova vcpu quota limit.
+          Only {{ $value }} vcpu remains to reach quota.
 
   octavia:
     enabled: true
