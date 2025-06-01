@@ -288,10 +288,10 @@ promethuesRules:
       labels:
         severity: warning
       annotations:
-        summary: "Cinder volume quota almost full for project `{{ $labels.tenant }}`"
+        summary: "Cinder volume quota almost full for project `{{`{{$labels.tenant}}`}}`"
         description: >
-          Project '{{ $labels.tenant_id }}' is nearing its Cinder volume quota limit.
-          Only {{ $value }} GB of volume space remains out of the allocated quota.
+          Project `{{`{{$labels.tenant_id}}`}}` is nearing its Cinder volume quota limit.
+          Only `{{`{{$value}}`}}` GB of volume space remains out of the allocated quota.
           Consider cleaning up unused volumes or requesting a quota increase.
 
     - alert: CinderVolumeQuotaFull
@@ -300,10 +300,10 @@ promethuesRules:
       labels:
         severity: critical
       annotations:
-        summary: "Cinder volume quota full for project `{{ $labels.tenant }}`"
+        summary: "Cinder volume quota full for project `{{`{{$labels.tenant}}`}}`"
         description: >
-          Project '{{ $labels.tenant_id }}' is nearing its Cinder volume quota limit.
-          Only {{ $value }} GB of volume space remains out of the allocated quota.
+          Project `{{`{{$labels.tenant_id}}`}}` is nearing its Cinder volume quota limit.
+          Only `{{`{{$value}}`}}` GB of volume space remains out of the allocated quota.
           Consider cleaning up unused volumes or requesting a quota increase.
 
     - alert: CinderBackupQuotaAlmostFull
@@ -312,10 +312,10 @@ promethuesRules:
       labels:
         severity: warning
       annotations:
-        summary: "Cinder backup quota almost full for project `{{ $labels.tenant }}`"
+        summary: "Cinder backup quota almost full for project `{{`{{$labels.tenant}}`}}`"
         description: >
-          Project '{{ $labels.tenant_id }}' is nearing its Cinder backup quota limit.
-          Only {{ $value }} GB of backup space remains out of the allocated quota.
+          Project `{{`{{$labels.tenant_id}}`}}` is nearing its Cinder backup quota limit.
+          Only `{{`{{$value}}`}}` GB of backup space remains out of the allocated quota.
           Consider cleaning up unused backup or requesting a quota increase.
 
     - alert: CinderBackupQuotaFull
@@ -324,10 +324,10 @@ promethuesRules:
       labels:
         severity: critical
       annotations:
-        summary: "Cinder backup quota full for project `{{ $labels.tenant }}`"
+        summary: "Cinder backup quota full for project `{{`{{$labels.tenant}}`}}`"
         description: >
-          Project '{{ $labels.tenant_id }}' is nearing its Cinder volume quota limit.
-          Only {{ $value }} GB of backup space remains out of the allocated quota.
+          Project `{{`{{$labels.tenant_id}}`}}` is nearing its Cinder volume quota limit.
+          Only `{{`{{$value}}`}}` GB of backup space remains out of the allocated quota.
           Consider cleaning up unused backup or requesting a quota increase.
 
   placement:
@@ -354,9 +354,9 @@ promethuesRules:
       labels:
         severity: warning
       annotations:
-        summary: "Low memory on host `{{ $labels.hostname }}`"
+        summary: "Low memory on host `{{`{{$labels.hostname}}`}}`"
         description: >
-          The available memory (after accounting for usage and reserved memory) on host {{ $labels.hostname }}
+          The available memory (after accounting for usage and reserved memory) on host `{{`{{$labels.hostname}}`}}`
           is below 32GB. This could lead to scheduling issues or performance degradation for new instances.
           Consider investigating memory usage or increasing available resources.
 
@@ -372,9 +372,9 @@ promethuesRules:
       labels:
         severity: critical
       annotations:
-        summary: "Low memory on host `{{ $labels.hostname }}`"
+        summary: "Low memory on host `{{`{{$labels.hostname}}`}}`"
         description: >
-          The available memory (after accounting for usage and reserved memory) on host {{ $labels.hostname }}
+          The available memory (after accounting for usage and reserved memory) on host `{{`{{$labels.hostname}}`}}`
           is below 12GB. This could lead to scheduling issues or performance degradation for new instances.
           Consider investigating memory usage or increasing available resources.
 
@@ -644,10 +644,10 @@ promethuesRules:
       labels:
         severity: warning
       annotations:
-        summary: "Nova instance quota almost full for project `{{ $labels.tenant }}`"
+        summary: "Nova instance quota almost full for project `{{`{{$labels.tenant}}`}}`"
         description: >
-          Project '{{ $labels.tenant_id }}' is nearing its Nova instance quota limit.
-          Only {{ $value }} instance remains to reach quota.
+          Project `{{`{{$labels.tenant_id}}`}}` is nearing its Nova instance quota limit.
+          Only `{{`{{$value}}`}}` instance remains to reach quota.
 
     - alert: NovaMemoryQuotaAlmostFull
       expr: (openstack_nova_limits_memory_max - openstack_nova_limits_memory_used) < 12288
@@ -655,10 +655,10 @@ promethuesRules:
       labels:
         severity: warning
       annotations:
-        summary: "Nova memory quota almost full for project `{{ $labels.tenant }}`"
+        summary: "Nova memory quota almost full for project `{{`{{$labels.tenant}}`}}`"
         description: >
-          Project '{{ $labels.tenant_id }}' is nearing its Nova memory quota limit.
-          Only {{ $value }} MB memory remains to reach quota.
+          Project `{{`{{$labels.tenant_id}}`}}` is nearing its Nova memory quota limit.
+          Only `{{`{{$value}}`}}` MB memory remains to reach quota.
 
     - alert: NovaCpuQuotaAlmostFull
       expr: (openstack_nova_limits_vcpus_max - openstack_nova_limits_vcpus_used) < 10
@@ -666,10 +666,10 @@ promethuesRules:
       labels:
         severity: warning
       annotations:
-        summary: "Nova vcpu quota almost full for project `{{ $labels.tenant }}`"
+        summary: "Nova vcpu quota almost full for project `{{`{{$labels.tenant}}`}}`"
         description: >
-          Project '{{ $labels.tenant_id }}' is nearing its Nova vcpu quota limit.
-          Only {{ $value }} vcpu remains to reach quota.
+          Project `{{`{{$labels.tenant_id}}`}}` is nearing its Nova vcpu quota limit.
+          Only `{{`{{$value}}`}}` vcpu remains to reach quota.
 
   octavia:
     enabled: true
