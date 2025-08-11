@@ -142,7 +142,7 @@ promethuesRules:
 
     # value = (9 | 10 | 13 | 14 | 15)
     - alert: CinderVolumeInError
-      for: 15m
+      for: 5m
       expr: openstack_cinder_volume_status{status=~"error.*"}
       labels:
         severity: critical
@@ -156,7 +156,7 @@ promethuesRules:
       expr: openstack_cinder_volume_status == 0
       for: 15m
       labels:
-        severity: warning
+        severity: critical
       annotations:
         summary: "`{{`{{$labels.name}}`}}` Volume in CREATING state"
         description: >
@@ -206,7 +206,7 @@ promethuesRules:
       expr: openstack_cinder_volume_status == 7
       for: 15m
       labels:
-        severity: warning
+        severity: critical
       annotations:
         summary: "`{{`{{$labels.name}}`}}` Volume in DELETING state"
         description: >
@@ -276,7 +276,7 @@ promethuesRules:
       expr: openstack_cinder_volume_status == 19
       for: 15m
       labels:
-        severity: warning
+        severity: critical
       annotations:
         summary: "`{{`{{$labels.name}}`}}` Volume in EXTENDING state"
         description: >
@@ -416,6 +416,7 @@ promethuesRules:
 
     - alert: NeutronBindingFailedPorts
       expr: openstack_neutron_port{binding_vif_type="binding_failed"} != 0
+      for: 2m
       labels:
         severity: warning
       annotations:
@@ -427,6 +428,7 @@ promethuesRules:
     - alert: NeutronNetworkOutOfIPs
       expr: |
         sum by (network_id) (openstack_neutron_network_ip_availabilities_used{project_id!=""}) / sum by (network_id) (openstack_neutron_network_ip_availabilities_total{project_id!=""}) * 100 > 80
+      for: 15m
       labels:
         severity: warning
       annotations:
